@@ -1,0 +1,12 @@
+# English strings go here for Rails i18n
+en:
+  redmine_status_report_statistics: Сводка по статусам
+  redmine_status_report_all: Все изменения статусов
+  redmine_status_report_user: Автор изменений
+  redmine_status_report_transition_date: Дата перехода
+  redmine_status_report_status_name: Статус
+  redmine_status_report_transition_secs: Длительность
+  redmine_status_report_transition_hours: Длительность (ч:м:с)
+  redmine_status_report_still: н/д
+  redmine_status_report_timeline: План-график
+  redmine_status_report_issue_total: Общее время

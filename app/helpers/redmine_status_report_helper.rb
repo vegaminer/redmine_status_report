@@ -3,48 +3,54 @@ class RedmineStatusReportHelper
 
   def self.base_sql(issue_id)
     <<-SQL
-select _t.*
+SELECT _t.*
      , s.name as status_name
      , concat(u.firstname, ' ', u.lastname) as user_name
      , unix_timestamp(till) - unix_timestamp(since) as transition_age_secs
-from (
-   select *
-   from (
-      select
-        i.created_on as since
-        , i.author_id as user_id
-        , j.updated_on as till
-        , old_value as status_id
-      from #{Journal.table_name} j
-             join #{JournalDetail.table_name} d on d.journal_id = j.id
-             join #{Issue.table_name} i on i.id = j.journalized_id
-      where j.journalized_type = 'Issue'
-        and j.journalized_id = #{issue_id}
-        and d.prop_key = 'status_id'
-      order by j.updated_on
-      limit 1
-    ) as _first
-
-   union all
-
-   select j.updated_on as since
-        , j.user_id
-        , min(if(jnd.id is not null, jn.updated_on, now())) as till
-        , d.value as status_id
-   from #{Journal.table_name} j
-          join #{JournalDetail.table_name} d on d.journal_id = j.id
-          left join #{Journal.table_name} jn on jn.id != j.id and jn.updated_on >= j.updated_on and
-                                   jn.journalized_type = j.journalized_type and
-                                   jn.journalized_id = j.journalized_id
-          left join #{JournalDetail.table_name} jnd on jnd.journal_id = jn.id and jnd.prop_key = 'status_id'
-   where j.journalized_type = 'Issue'
-     and j.journalized_id = #{issue_id}
-     and d.prop_key = 'status_id'
-   group by j.id, j.user_id, j.updated_on, d.value
-   order by since
-  ) as _t
-  join #{IssueStatus.table_name} s on s.id = _t.status_id
-  left join #{User.table_name} u on u.id = _t.user_id
+FROM (
+    SELECT * FROM (
+        SELECT
+              i.created_on AS since
+            , i.author_id AS user_id
+            , jf.created_on AS till
+            , old_value AS status_id
+        FROM #{Journal.table_name} jf
+             JOIN #{JournalDetail.table_name} d ON d.journal_id = jf.id
+             JOIN #{Issue.table_name} i ON i.id = jf.journalized_id
+        WHERE jf.journalized_type = 'Issue'
+        AND jf.journalized_id = 20973
+        AND d.prop_key = 'status_id'
+        ORDER BY d.id
+        LIMIT 1    
+    ) AS _first
+    
+    UNION ALL
+    
+    SELECT * FROM (
+        SELECT 
+              j.created_on AS since
+            , j.user_id
+            , ( SELECT 
+                    jn.created_on
+                FROM 
+                    #{Journal.table_name} jn
+                LEFT JOIN 
+                    #{JournalDetail.table_name} jnd ON jnd.journal_id = jn.id 
+                WHERE jn.journalized_id = j.journalized_id AND jn.journalized_type = 'Issue' 
+                    AND jnd.id > d.id AND jnd.prop_key = 'status_id' 
+                ORDER BY jnd.id LIMIT 1 ) AS till
+            , d.value AS status_id   
+        FROM #{Journal.table_name} j
+              join #{JournalDetail.table_name} d on d.journal_id = j.id 
+        WHERE j.journalized_id = #{issue_id}
+            AND j.journalized_type = 'Issue'
+            AND d.prop_key = 'status_id'
+        ORDER by d.id
+    ) AS _all
+  ) AS _t
+  
+  JOIN #{IssueStatus.table_name} s on s.id = _t.status_id
+  LEFT JOIN #{User.table_name} u on u.id = _t.user_id
     SQL
   end
 
@@ -72,10 +78,10 @@ from (
 
   def self.load_stats(issue)
     sql = <<-SQL
-      select status_id, status_name, sum(transition_age_secs) as total_status_secs from (
+      SELECT status_id, status_name, sum(transition_age_secs) as total_status_secs FROM (
         #{base_sql(issue.id)}
-      ) as _t
-      group by status_id, status_name
+      ) AS _t
+      GROUP BY status_id, status_name
     SQL
 
     res = ActiveRecord::Base.connection.exec_query sql
@@ -86,6 +92,10 @@ from (
       row['percent'] = (100 * row['total_status_secs'].to_f / total).round(2)
       row
     end
+    
+    res = res.to_a
+    totalIssueTime = Hash[ 'status_id' => -1, 'status_name' => '__total__', 'total_status_secs' => total, 'percent' => 100 ]
+    res = [ totalIssueTime ] + res
   end
 
   def self.secs_to_duration_string(secs)
@@ -93,6 +103,18 @@ from (
       return nil
     end
 
-    distance_of_time_in_words(0, secs, include_seconds: true)
+    secs = distance_of_time_in_words(0, secs, include_seconds: true)
+  end
+  
+  def self.secs_to_hours(secs)
+    if secs.nil?
+      return nil
+    end
+
+    tHours = ( secs / 3600 ).floor
+    tMinutes = ( ( secs - tHours * 3600 ) / 60 ).floor
+    tSecs = secs - tHours * 3600 - tMinutes * 60
+
+    res = tHours.to_s + ':' + tMinutes.to_s + ':' + tSecs.to_s  
   end
 end

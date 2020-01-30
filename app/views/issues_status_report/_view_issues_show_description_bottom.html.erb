@@ -18,6 +18,7 @@
       <thead>
       <tr>
         <th><%= l(:redmine_status_report_status_name) %></th>
+        <th><%= l(:redmine_status_report_transition_hours) %></th>
         <th><%= l(:redmine_status_report_transition_secs) %></th>
         <th><%= l(:redmine_status_report_timeline) %></th>
       </tr>
@@ -25,7 +26,10 @@
       <tbody>
       <% RedmineStatusReportHelper.load_stats(@issue).each do |row| %>
         <tr>
-          <td><%= row['status_name'] %></td>
+          <td><%= if row['status_name'] != '__total__' then row['status_name'] else l(:redmine_status_report_issue_total) end %></td>
+          <td>
+            <%= RedmineStatusReportHelper.secs_to_hours(row['total_status_secs']) || l(:redmine_status_report_still) %>
+          </td>          
           <td>
             <%= RedmineStatusReportHelper.secs_to_duration_string(row['total_status_secs']) || l(:redmine_status_report_still) %>
           </td>
@@ -44,6 +48,7 @@
         <th style="min-width: 10em"><%= l(:redmine_status_report_status_name) %></th>
         <th style="min-width: 10em"><%= l(:redmine_status_report_user) %></th>
         <th style="min-width: 10em"><%= l(:redmine_status_report_transition_date) %></th>
+        <th style="min-width: 10em"><%= l(:redmine_status_report_transition_hours) %></th>
         <th style="min-width: 10em"><%= l(:redmine_status_report_transition_secs) %></th>
         <th><%= l(:redmine_status_report_timeline) %></th>
       </tr>
@@ -59,6 +64,11 @@
           <td><%= row['status_name'] %></td>
           <td><%= row['user_name'] %></td>
           <td><%= since_fmt %></td>
+          <td>
+            <span title="<%= tooltip %>">
+              <%= RedmineStatusReportHelper.secs_to_hours(row['transition_age_secs']) || l(:redmine_status_report_still) %>
+            </span>
+          </td>          
           <td>
             <span title="<%= tooltip %>">
               <%= RedmineStatusReportHelper.secs_to_duration_string(row['transition_age_secs']) || l(:redmine_status_report_still) %>

@@ -6,5 +6,7 @@ en:
   redmine_status_report_transition_date: Occured on
   redmine_status_report_status_name: Status
   redmine_status_report_transition_secs: Lasted for
-  redmine_status_report_still: now
+  redmine_status_report_transition_hours: Lasted for (h:m:s)
+  redmine_status_report_still: n/a
   redmine_status_report_timeline: Timeline
+  redmine_status_report_issue_total: Issue total time
