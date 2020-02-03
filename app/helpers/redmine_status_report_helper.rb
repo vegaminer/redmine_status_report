@@ -12,16 +12,23 @@ FROM (
         SELECT
               i.created_on AS since
             , i.author_id AS user_id
-            , jf.created_on AS till
-            , old_value AS status_id
-        FROM #{Journal.table_name} jf
-             JOIN #{JournalDetail.table_name} d ON d.journal_id = jf.id
-             JOIN #{Issue.table_name} i ON i.id = jf.journalized_id
-        WHERE jf.journalized_type = 'Issue'
-        AND jf.journalized_id = 20973
-        AND d.prop_key = 'status_id'
-        ORDER BY d.id
-        LIMIT 1    
+            , IFNULL( ( 
+                SELECT
+                     jf.created_on AS till
+                FROM #{Journal.table_name} jf
+                    JOIN #{JournalDetail.table_name} d ON d.journal_id = jf.id
+                WHERE jf.journalized_type = 'Issue'
+                    AND jf.journalized_id = i.id
+                    AND d.prop_key = 'status_id'
+                ORDER BY d.id
+                LIMIT 1 
+                ), IF ( i.closed_on IS NULL, NOW(), i.closed_on ) 
+            ) AS till
+            , 1 AS status_id
+        FROM 
+            #{Issue.table_name} i
+        WHERE 
+            i.id = #{issue_id}    
     ) AS _first
     
     UNION ALL
@@ -30,18 +37,18 @@ FROM (
         SELECT 
               j.created_on AS since
             , j.user_id
-            , ( SELECT 
+            , IFNULL ( ( SELECT 
                     jn.created_on
                 FROM 
                     #{Journal.table_name} jn
-                LEFT JOIN 
-                    #{JournalDetail.table_name} jnd ON jnd.journal_id = jn.id 
+                LEFT JOIN #{JournalDetail.table_name} jnd ON jnd.journal_id = jn.id 
                 WHERE jn.journalized_id = j.journalized_id AND jn.journalized_type = 'Issue' 
                     AND jnd.id > d.id AND jnd.prop_key = 'status_id' 
-                ORDER BY jnd.id LIMIT 1 ) AS till
+                ORDER BY jnd.id LIMIT 1 ), IF ( i.closed_on IS NULL, NOW(), NULL ) ) AS till
             , d.value AS status_id   
         FROM #{Journal.table_name} j
-              join #{JournalDetail.table_name} d on d.journal_id = j.id 
+              LEFT JOIN #{JournalDetail.table_name} d on d.journal_id = j.id 
+              LEFT JOIN #{Issue.table_name} i ON j.journalized_id = i.id
         WHERE j.journalized_id = #{issue_id}
             AND j.journalized_type = 'Issue'
             AND d.prop_key = 'status_id'
@@ -64,14 +71,14 @@ FROM (
       row['percent_running_total'] = idx == 0 ? 0 : (res[idx - 1]['percent'] + res[idx - 1]['percent_running_total']).round(2)
     end
 
-    if issue.closed?
-      last_rec = res[res.length - 1]
+    # if issue.closed?
+      # last_rec = res[res.length - 1]
 
-      last_rec['till'] = nil
-      last_rec['transition_age_secs'] = nil
-      last_rec['percent'] = 0
-      last_rec['percent_running_total'] = 0
-    end
+      # last_rec['till'] = nil
+      # last_rec['transition_age_secs'] = nil
+      # last_rec['percent'] = 0
+      # last_rec['percent_running_total'] = 0
+    # end
 
     res
   end
