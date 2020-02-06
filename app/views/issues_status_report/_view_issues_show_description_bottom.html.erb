@@ -45,8 +45,10 @@
     <table>
       <thead>
       <tr>
+        <th style="min-width: 2em"><%= l(:redmine_status_report_status_number) %></th>
         <th style="min-width: 10em"><%= l(:redmine_status_report_status_name) %></th>
         <th style="min-width: 10em"><%= l(:redmine_status_report_user) %></th>
+        <th style="min-width: 10em"><%= l(:redmine_status_report_user_type) %></th>
         <th style="min-width: 10em"><%= l(:redmine_status_report_transition_date) %></th>
         <th style="min-width: 10em"><%= l(:redmine_status_report_transition_hours) %></th>
         <th style="min-width: 10em"><%= l(:redmine_status_report_transition_secs) %></th>
@@ -61,8 +63,11 @@
           tooltip = "#{since_fmt} &ndash; #{till_fmt} (#{row['percent']}% of total time)".html_safe
         %>
         <tr>
+          <td><%= row['recId'].to_i.to_s %></td>
           <td><%= row['status_name'] %></td>
-          <td><%= row['user_name'] %></td>
+          <td><%= row['user_name'] %></td> 
+          <!-- td><%= row['user_type'] %>-><%= row['next_user_type'] %> </td -->
+          <td><%= row['user_type'] %> </td>
           <td><%= since_fmt %></td>
           <td>
             <span title="<%= tooltip %>">

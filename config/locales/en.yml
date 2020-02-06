@@ -10,3 +10,5 @@ en:
   redmine_status_report_still: n/a
   redmine_status_report_timeline: Timeline
   redmine_status_report_issue_total: Issue total time
+  redmine_status_report_user_type: Type
+  redmine_status_report_status_number: "#"
