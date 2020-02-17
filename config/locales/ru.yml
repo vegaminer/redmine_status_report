@@ -8,6 +8,6 @@ en:
   redmine_status_report_transition_secs: Длительность
   redmine_status_report_transition_hours: Длительность (ч:м:с)
   redmine_status_report_still: н/д
-  redmine_status_report_timeline: План-график
+  redmine_status_report_timeline: Шкала времени
   redmine_status_report_issue_total: Общее время
   redmine_status_report_user_type: Тип
