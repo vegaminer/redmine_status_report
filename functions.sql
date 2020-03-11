@@ -30,13 +30,23 @@ user1 будет иметь тип _Заказчик, а не _Исполнит�
 
 */
 
-DROP FUNCTION IF EXISTS get_mgt_user_type;
+DROP FUNCTION IF EXISTS get_project_user_type;
 DELIMITER $$
-CREATE DEFINER = 'mappl'@'localhost' FUNCTION get_mgt_user_type( aUserId INT, aProjectId INT ) RETURNS VARCHAR(30)
+-- CREATE DEFINER = 'mappl'@'localhost' FUNCTION get_mgt_user_type( aUserId INT, aProjectId INT ) RETURNS VARCHAR(30)
+CREATE FUNCTION get_project_user_type( aUserId INT, aProjectId INT ) RETURNS VARCHAR(30)
 READS SQL DATA
 BEGIN
     DECLARE Result VARCHAR(30);
-    SET Result = '_Заказчик';
+    DECLARE clientName VARCHAR(30);
+    DECLARE contractorName VARCHAR(30);
+    DECLARE clientAlias VARCHAR(30);
+    DECLARE contractorAlias VARCHAR(30);
+    
+    SET Result = 'contractor';
+    SET clientName = '_Заказчик';
+    SET contractorName = '_Исполнитель';
+    SET clientAlias = 'client';
+    SET contractorAlias = 'contractor';
     
     SELECT 
            IFNULL( IFNULL( IFNULL( ( 
@@ -51,8 +61,8 @@ BEGIN
                     LEFT JOIN roles r ON mr.role_id = r.id 
                     WHERE u.id = uu.id
                         AND m.project_id = aProjectId
-                        AND g.lastname IN ( '_Исполнитель', '_Заказчик' )
-                        AND r.name IN ( '_Исполнитель', '_Заказчик' ) 
+                        AND g.lastname IN ( clientName, contractorName )
+                        AND r.name IN ( clientName, contractorName ) 
                         AND r.name != g.lastname 
                     LIMIT 1
                 ) 
@@ -70,8 +80,8 @@ BEGIN
                     WHERE 
                         u.id = uu.id
                         AND m.project_id = aProjectId
-                        AND g.lastname IN ( '_Исполнитель', '_Заказчик' ) 
-                        AND r.name IN ( '_Исполнитель', '_Заказчик' ) 
+                        AND g.lastname IN ( clientName, contractorName ) 
+                        AND r.name IN ( clientName, contractorName ) 
                         AND r.name = g.lastname
                     LIMIT 1
                 ) 
@@ -87,16 +97,16 @@ BEGIN
                 WHERE 
                     u.id = uu.id
                     AND m.project_id = aProjectId
-                    AND r.name IN ( '_Исполнитель', '_Заказчик' ) 
+                    AND r.name IN ( clientName, contractorName ) 
                 LIMIT 1
             )
         )
-        , '_Заказчик' ) INTO Result
+        , contractorName ) INTO Result
     FROM 
         users uu
     WHERE
         uu.id = aUserId;
         
-    RETURN Result;    
+    RETURN IF( Result = clientName, contractorAlias, clientAlias );    
 END$$
 DELIMITER ;

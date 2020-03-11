@@ -1,14 +1,17 @@
 class RedmineStatusReportHelper
   extend ActionView::Helpers::DateHelper
 
+  #**
+  # base_sql
+  #
   def self.base_sql(issue)
     <<-SQL
 SELECT _t.*
     , rec_count recId
     , s.name AS status_name
     , UNIX_TIMESTAMP( till ) - UNIX_TIMESTAMP( since ) AS transition_age_secs
-    , get_mgt_user_type( _t.user_id, _t.project_id ) user_type
-    , get_mgt_user_type( _t.next_user_id, _t.project_id ) next_user_type
+    , get_project_user_type( _t.user_id, _t.project_id ) user_type
+    , get_project_user_type( _t.next_user_id, _t.project_id ) next_user_type
     , CONCAT( u.firstname, ' ', u.lastname ) AS user_name
 FROM (
     SELECT * FROM ( 

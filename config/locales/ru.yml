@@ -11,3 +11,6 @@ en:
   redmine_status_report_timeline: Шкала времени
   redmine_status_report_issue_total: Общее время
   redmine_status_report_user_type: Тип
+  redmine_status_report_status_number: "#"
+  redmine_status_report_client: Заказчик
+  redmine_status_report_contractor: Исполнитель

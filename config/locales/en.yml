@@ -12,3 +12,5 @@ en:
   redmine_status_report_issue_total: Issue total time
   redmine_status_report_user_type: Type
   redmine_status_report_status_number: "#"
+  redmine_status_report_client: Client
+  redmine_status_report_contractor: Contractor
