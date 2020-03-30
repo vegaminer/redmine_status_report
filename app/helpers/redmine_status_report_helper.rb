@@ -123,6 +123,7 @@ FROM (
     res = [ totalIssueTime ] + res
   end
 
+  #** secs_to_duration_string
   def self.secs_to_duration_string(secs)
     if secs.nil?
       return nil
@@ -131,6 +132,7 @@ FROM (
     secs = distance_of_time_in_words(0, secs, include_seconds: true)
   end
   
+  #** secs_to_hours
   def self.secs_to_hours(secs)
     if secs.nil?
       return nil

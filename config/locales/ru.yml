@@ -14,3 +14,4 @@ en:
   redmine_status_report_status_number: "#"
   redmine_status_report_client: Заказчик
   redmine_status_report_contractor: Исполнитель
+  redmine_status_report_unknown: ???

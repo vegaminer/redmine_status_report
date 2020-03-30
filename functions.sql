@@ -41,15 +41,17 @@ BEGIN
     DECLARE contractorName VARCHAR(30);
     DECLARE clientAlias VARCHAR(30);
     DECLARE contractorAlias VARCHAR(30);
+    DECLARE unknownAlias VARCHAR(30);
     
-    SET Result = 'contractor';
     SET clientName = '_Заказчик';
-    SET contractorName = '_Исполнитель';
     SET clientAlias = 'client';
+    SET contractorName = '_Исполнитель';
     SET contractorAlias = 'contractor';
+    SET unknownAlias = 'unknown';
+    SET Result = unknownAlias;
     
     SELECT 
-           IFNULL( IFNULL( IFNULL( ( 
+            IFNULL( IFNULL( IFNULL( IFNULL( ( 
                     SELECT 
                         r.name roleName
                     FROM 
@@ -87,7 +89,8 @@ BEGIN
                 ) 
             )
             
-            , ( SELECT 
+            , ( 
+                SELECT 
                     r.name roleName
                 FROM 
                     users u 
@@ -99,14 +102,25 @@ BEGIN
                     AND m.project_id = aProjectId
                     AND r.name IN ( clientName, contractorName ) 
                 LIMIT 1
+            ) )
+            , ( -- В проекте пользователя нет, ищем по названию группы
+                SELECT
+                    g.lastname groupName
+                FROM 
+                    groups_users gu 
+                LEFT JOIN users g ON g.id = gu.group_id 
+                WHERE 
+                    gu.user_id = uu.id
+                    AND g.lastname IN ( clientName, contractorName ) 
+                LIMIT 1               
             )
         )
-        , contractorName ) INTO Result
+        , unknownAlias ) INTO Result
     FROM 
         users uu
     WHERE
         uu.id = aUserId;
         
-    RETURN IF( Result = clientName, contractorAlias, clientAlias );    
+    RETURN IF( Result = clientName, clientAlias, IF ( Result = contractorName, contractorAlias, unknownAlias ) );
 END$$
 DELIMITER ;
