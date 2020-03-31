@@ -13,6 +13,7 @@ SELECT _t.*
     , get_project_user_type( _t.user_id, _t.project_id ) user_type
     , get_project_user_type( _t.next_user_id, _t.project_id ) next_user_type
     , CONCAT( u.firstname, ' ', u.lastname ) AS user_name
+    , e.address email
 FROM (
     SELECT * FROM ( 
         SELECT
@@ -75,6 +76,7 @@ FROM (
   
   JOIN #{IssueStatus.table_name} s ON s.id = _t.status_id
   LEFT JOIN #{User.table_name} u ON u.id = _t.user_id
+  LEFT JOIN #{EmailAddress.table_name} e ON e.user_id = _t.user_id
     SQL
   end
 
@@ -144,4 +146,15 @@ FROM (
 
     res = tHours.to_s + ':' + tMinutes.to_s + ':' + tSecs.to_s  
   end
+
+  #** getUserType
+  def self.getUserType( aRow, aRenderer )
+      # puts aRow.inspect	  
+      userType = aRow[ 'user_type' ]
+      email = aRow[ 'email' ].partition( '@' )
+      email = ( email.count > 0 ? '@' + email.last : '' )
+      
+      return aRenderer.l( "redmine_status_report_#{userType}" ) + email unless userType == 'unknown' 
+      return email
+  end	  
 end
