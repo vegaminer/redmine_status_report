@@ -121,6 +121,6 @@ BEGIN
     WHERE
         uu.id = aUserId;
         
-    RETURN IF( Result = clientName, clientAlias, IF ( Result = contractorName, contractorAlias, unknownAlias ) );
+    -- RETURN IF( Result = clientName, clientAlias, IF ( Result = contractorName, contractorAlias, unknownAlias ) );
 END$$
 DELIMITER ;
