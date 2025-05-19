@@ -196,7 +196,7 @@ class RedmineStatusReportHelper
   def self.getUserType(aRow, aRenderer)
     # puts aRow.inspect
     userType = aRow['user_type']
-    email = aRow['email'].partition('@')
+    email = aRow['email'].to_s.partition('@')
     email = (email.count > 0 ? '@' + email.last : '')
 
     return aRenderer.l("redmine_status_report_#{userType}") + email unless userType == 'unknown'
